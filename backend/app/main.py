@@ -29,10 +29,18 @@ logger = get_logger(__name__)
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan manager."""
     logger.info("Starting Voice Agent Ops API")
-    await init_db()
+    try:
+        await init_db()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.warning(f"Database initialization skipped: {e}")
+        logger.info("API docs will be available, but database operations will fail")
     yield
     logger.info("Shutting down Voice Agent Ops API")
-    await close_db()
+    try:
+        await close_db()
+    except Exception:
+        pass
 
 
 # Create FastAPI app
