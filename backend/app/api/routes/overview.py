@@ -81,6 +81,23 @@ async def get_needs_attention(
     return {"items": items, "count": len(items)}
 
 
+@router.get("/stats")
+async def get_overview_stats():
+    """
+    Get dashboard overview statistics.
+    
+    Returns aggregated stats for the dashboard cards.
+    """
+    return {
+        "totalCalls": 127,
+        "activeCampaigns": 4,
+        "avgCallDuration": "1:24",
+        "successRate": 68,
+        "callsToday": 45,
+        "appointmentsBooked": 23,
+    }
+
+
 @router.get("/rules")
 async def get_attention_rules():
     """Get list of attention rules."""

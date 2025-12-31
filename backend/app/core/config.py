@@ -1,4 +1,4 @@
-"""Voice Agent Ops - Configuration."""
+"""Call Yala - Configuration."""
 
 from pathlib import Path
 from typing import Literal
@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     elevenlabs_webhook_secret: str = ""
     elevenlabs_agent_id: str = ""
     elevenlabs_phone_number_id: str = ""
+
+    # Anthropic Claude
+    anthropic_api_key: str = ""
 
     # Behavior
     mock_mode: bool = False

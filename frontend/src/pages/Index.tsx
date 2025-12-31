@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Phone, PhoneIncoming, CalendarCheck, RefreshCw, UserCheck, Clock, Loader2 } from "lucide-react";
+import { Phone, PhoneIncoming, CalendarCheck, RefreshCw, UserCheck, Clock } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { VoiceStatsCard } from "@/components/VoiceStatsCard";
@@ -11,7 +11,8 @@ import { QuickActions } from "@/components/QuickActions";
 import { CallLogTable } from "@/components/CallLogTable";
 import { CommandPalette } from "@/components/CommandPalette";
 import { LiveCallingBar } from "@/components/LiveCallingBar";
-import { staggerContainer, staggerItem, blurIn } from "@/lib/motion";
+import { PageSkeleton } from "@/components/LoadingSkeletons";
+import { staggerContainer, blurIn } from "@/lib/motion";
 import { useOverviewStats, useAppointmentStats, useCalls } from "@/hooks/use-api";
 
 const Index = () => {
@@ -40,6 +41,18 @@ const Index = () => {
       { title: "Avg Duration", value: avgDuration, change: "-8s", changeLabel: "vs avg", icon: Clock, positive: true, trend: "down" as const },
     ];
   }, [overviewData, appointmentStats]);
+
+  // Show loading state
+  if (overviewLoading) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <Sidebar collapsed={sidebarCollapsed} onCollapse={setSidebarCollapsed} />
+        <main className="flex-1 p-6 overflow-auto">
+          <PageSkeleton />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-background">

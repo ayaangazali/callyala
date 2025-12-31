@@ -1,4 +1,4 @@
-"""Voice Agent Ops - FastAPI Application."""
+"""Call Yala - FastAPI Application."""
 
 import uuid
 from contextlib import asynccontextmanager
@@ -21,6 +21,10 @@ from app.api.routes.appointments import router as appointments_router
 from app.api.routes.customers import router as customers_router
 from app.api.routes.scripts import router as scripts_router
 from app.api.routes.qa import router as qa_router
+# New routers for dynamic sheets, AI, and voice calling
+from app.api.routes.sheets_dynamic import router as sheets_dynamic_router
+from app.api.routes.ai import router as ai_router
+from app.api.routes.voice import router as voice_router
 
 
 @asynccontextmanager
@@ -34,8 +38,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Call Yala API",
-    description="AI Voice Calling Platform for Car Dealerships",
-    version="1.0.0",
+    description="AI Voice Calling Platform - Dynamic Sheets, ElevenLabs Voice AI, Claude Intelligence",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
@@ -70,6 +74,10 @@ app.include_router(appointments_router)
 app.include_router(customers_router)
 app.include_router(scripts_router)
 app.include_router(qa_router)
+# New feature routers
+app.include_router(sheets_dynamic_router)  # /api/sheets/v2/*
+app.include_router(ai_router)              # /api/ai/*
+app.include_router(voice_router)           # /api/voice/*
 
 
 @app.get("/")
@@ -77,8 +85,13 @@ async def root():
     """Root endpoint."""
     return {
         "service": "Call Yala API",
-        "version": "1.0.0",
+        "version": "2.0.0",
         "docs": "/docs",
+        "features": [
+            "Dynamic Google Sheets (any format)",
+            "ElevenLabs Voice AI Calling",
+            "Anthropic Claude Intelligence",
+        ],
     }
 
 
