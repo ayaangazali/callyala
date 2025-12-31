@@ -17,20 +17,24 @@ from app.api.routes.calls import router as calls_router
 from app.api.routes.overview import router as overview_router
 from app.api.routes.webhooks import router as webhooks_router
 from app.api.routes.sheets import router as sheets_router
+from app.api.routes.appointments import router as appointments_router
+from app.api.routes.customers import router as customers_router
+from app.api.routes.scripts import router as scripts_router
+from app.api.routes.qa import router as qa_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler."""
-    logger.info(f"Starting Voice Agent Ops (env={settings.app_env}, mock={settings.mock_mode})")
+    logger.info(f"Starting Call Yala API (env={settings.app_env}, mock={settings.mock_mode})")
     yield
-    logger.info("Shutting down Voice Agent Ops")
+    logger.info("Shutting down Call Yala API")
     await elevenlabs.close()
 
 
 app = FastAPI(
-    title="Voice Agent Ops",
-    description="AI Voice Agent Operations Platform for Car Dealerships",
+    title="Call Yala API",
+    description="AI Voice Calling Platform for Car Dealerships",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -62,13 +66,17 @@ app.include_router(calls_router)
 app.include_router(overview_router)
 app.include_router(webhooks_router)
 app.include_router(sheets_router)
+app.include_router(appointments_router)
+app.include_router(customers_router)
+app.include_router(scripts_router)
+app.include_router(qa_router)
 
 
 @app.get("/")
 async def root():
     """Root endpoint."""
     return {
-        "service": "Voice Agent Ops",
+        "service": "Call Yala API",
         "version": "1.0.0",
         "docs": "/docs",
     }

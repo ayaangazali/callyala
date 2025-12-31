@@ -10,7 +10,6 @@ import Appointments from "./pages/Appointments";
 import Customers from "./pages/Customers";
 import Scripts from "./pages/Scripts";
 import QA from "./pages/QA";
-import Integrations from "./pages/Integrations";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -30,7 +29,6 @@ const App = () => (
           <Route path="/customers" element={<Customers />} />
           <Route path="/scripts" element={<Scripts />} />
           <Route path="/qa" element={<QA />} />
-          <Route path="/integrations" element={<Integrations />} />
           <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

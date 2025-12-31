@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Megaphone,
@@ -22,6 +22,7 @@ import {
   FileSpreadsheet,
   Settings,
   Zap,
+  Loader2,
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { blurIn, staggerContainer, staggerItem } from "@/lib/motion";
+import { useCampaigns, useCreateCampaign, useStartCampaign, usePauseCampaign, useDeleteCampaign } from "@/hooks/use-api";
+import { useToast } from "@/hooks/use-toast";
 
 interface Campaign {
   id: string;

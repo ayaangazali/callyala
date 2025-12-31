@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FileText,
@@ -23,6 +23,7 @@ import {
   Code,
   Settings2,
   Zap,
+  Loader2,
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { useScripts, useScriptStats, useCreateScript, useDeleteScript, useTestScript } from "@/hooks/use-api";
+import { useToast } from "@/hooks/use-toast";
 import { blurIn, staggerContainer, staggerItem } from "@/lib/motion";
 
 interface Script {

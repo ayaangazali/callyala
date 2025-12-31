@@ -26,7 +26,6 @@ const navItems = [
   { title: "Customers & Vehicles", url: "/customers", icon: Car },
   { title: "Scripts & Prompts", url: "/scripts", icon: FileText },
   { title: "QA / Review", url: "/qa", icon: ShieldCheck },
-  { title: "Integrations", url: "/integrations", icon: Puzzle },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
@@ -69,8 +68,8 @@ export function Sidebar({ collapsed = false, onCollapse }: SidebarProps) {
               exit={{ opacity: 0, x: -10 }}
               transition={{ duration: 0.15 }}
             >
-              <h1 className="font-semibold text-sidebar-primary text-sm">Voice Agent Ops</h1>
-              <p className="text-xs text-sidebar-foreground">Dealership AI Calling</p>
+              <h1 className="font-semibold text-sidebar-primary text-sm">Call Yala</h1>
+              <p className="text-xs text-sidebar-foreground">AI Voice Calling Platform</p>
             </motion.div>
           )}
         </AnimatePresence>

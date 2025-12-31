@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Calendar as CalendarIcon,
@@ -17,6 +17,7 @@ import {
   AlertCircle,
   Search,
   Filter,
+  Loader2,
 } from "lucide-react";
 import { format, addDays, startOfWeek, addWeeks, isSameDay, isToday } from "date-fns";
 import { Sidebar } from "@/components/Sidebar";
@@ -53,6 +54,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { blurIn, staggerContainer, staggerItem } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import { useAppointments, useAppointmentStats, useCreateAppointment, useCancelAppointment } from "@/hooks/use-api";
+import { useToast } from "@/hooks/use-toast";
 
 interface Appointment {
   id: string;

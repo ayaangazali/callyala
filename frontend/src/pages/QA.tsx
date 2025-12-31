@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   CheckCircle,
@@ -22,6 +22,7 @@ import {
   TrendingUp,
   Flag,
   Eye,
+  Loader2,
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
 import { blurIn, staggerContainer, staggerItem } from "@/lib/motion";
+import { useQACalls, useQAStats, useQATrends, useSubmitReview, useFlagCall } from "@/hooks/use-api";
+import { useToast } from "@/hooks/use-toast";
 
 interface CallForReview {
   id: string;
