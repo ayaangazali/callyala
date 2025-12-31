@@ -1,13 +1,9 @@
-"""
-Voice Agent Ops - Core Configuration
+"""Voice Agent Ops - Configuration."""
 
-Pydantic Settings for environment-based configuration.
-"""
+from pathlib import Path
+from typing import Literal
 
-from functools import lru_cache
-from typing import List
-
-from pydantic import Field, field_validator
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,53 +18,59 @@ class Settings(BaseSettings):
     )
 
     # App
-    app_name: str = "Voice Agent Ops"
-    app_env: str = "development"
-    debug: bool = False
-    log_level: str = "INFO"
+    app_env: Literal["local", "development", "production"] = "local"
+    port: int = 8000
+    data_dir: Path = Path("./data")
 
-    # Database
-    database_url: str = Field(
-        default="postgresql+asyncpg://postgres:postgres@localhost:5432/voice_agent_ops"
-    )
-
-    # Redis
-    redis_url: str = "redis://localhost:6379/0"
-
-    # Security
-    jwt_secret: str = Field(default="change-me-in-production")
-    jwt_algorithm: str = "HS256"
-    jwt_expire_minutes: int = 1440  # 24 hours
+    # Google Sheets
+    google_sheets_spreadsheet_id: str = ""
+    google_sheets_range: str = "Sheet1!A1:Z"
+    google_service_account_json_path: Path = Path("./secrets/service_account.json")
 
     # ElevenLabs
     elevenlabs_api_key: str = ""
     elevenlabs_webhook_secret: str = ""
-    elevenlabs_base_url: str = "https://api.elevenlabs.io/v1"
+    elevenlabs_agent_id: str = ""
+    elevenlabs_phone_number_id: str = ""
 
-    # CORS
-    cors_origins: str = "http://localhost:8080,http://localhost:3000"
+    # Behavior
+    mock_mode: bool = False
+    default_timezone: str = "Asia/Kuwait"
+    max_batch_size: int = 200
+    http_timeout_seconds: int = 30
 
-    @field_validator("cors_origins", mode="before")
+    @field_validator("data_dir", mode="before")
     @classmethod
-    def parse_cors_origins(cls, v: str | List[str]) -> str:
-        if isinstance(v, list):
-            return ",".join(v)
-        return v
+    def ensure_data_dir(cls, v):
+        """Ensure data directory exists."""
+        path = Path(v)
+        path.mkdir(parents=True, exist_ok=True)
+        (path / "uploads").mkdir(exist_ok=True)
+        return path
 
     @property
-    def cors_origins_list(self) -> List[str]:
-        """Parse CORS origins as a list."""
-        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+    def campaigns_file(self) -> Path:
+        return self.data_dir / "campaigns.json"
 
     @property
-    def is_production(self) -> bool:
-        return self.app_env.lower() == "production"
+    def calls_file(self) -> Path:
+        return self.data_dir / "calls.jsonl"
+
+    @property
+    def call_index_file(self) -> Path:
+        return self.data_dir / "call_index.json"
+
+    @property
+    def sheet_cache_file(self) -> Path:
+        return self.data_dir / "sheet_cache.json"
+
+    @property
+    def webhook_dedup_file(self) -> Path:
+        return self.data_dir / "webhook_dedup.json"
+
+    @property
+    def uploads_dir(self) -> Path:
+        return self.data_dir / "uploads"
 
 
-@lru_cache
-def get_settings() -> Settings:
-    """Get cached settings instance."""
-    return Settings()
-
-
-settings = get_settings()
+settings = Settings()
