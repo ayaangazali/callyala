@@ -8,9 +8,9 @@ Unified calling system that:
 4. Updates results back to sheets
 """
 
-from typing import Optional, Any
+from typing import Optional
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from app.services.elevenlabs import elevenlabs
@@ -26,22 +26,11 @@ router = APIRouter(prefix="/api/voice", tags=["voice-calling"])
 # Request/Response Models
 # =============================================================================
 
-class AgentConfigRequest(BaseModel):
-    """Configuration for the AI calling agent."""
-    name: str = "Sarah"
-    company_name: str = "Call Yala"
-    first_message: str = "Hello! This is {agent_name} from {company_name}. How are you today?"
-    system_prompt: Optional[str] = None
-    voice_id: str = "21m00Tcm4TlvDq8ikWAM"  # Rachel
-    language: str = "en"
-
-
 class InitiateCallRequest(BaseModel):
     """Request to initiate a single call."""
     phone_number: str
-    agent_id: Optional[str] = None
-    agent_config: Optional[AgentConfigRequest] = None
-    metadata: Optional[dict] = None
+    first_message: Optional[str] = None
+    dynamic_variables: Optional[dict[str, str]] = None
     # Optional: Link to Google Sheet row
     spreadsheet_id: Optional[str] = None
     sheet_row_number: Optional[int] = None
@@ -53,7 +42,6 @@ class CallFromSheetRequest(BaseModel):
     row_number: int
     phone_column: str  # Column header containing phone number
     sheet_name: Optional[str] = None
-    agent_id: Optional[str] = None
     # Column to update with result
     result_column: Optional[str] = None
 
@@ -63,7 +51,6 @@ class BatchCallFromSheetRequest(BaseModel):
     spreadsheet_id: str
     phone_column: str
     sheet_name: Optional[str] = None
-    agent_id: Optional[str] = None
     result_column: Optional[str] = None
     # Filters
     start_row: int = 2  # Skip header
@@ -96,46 +83,6 @@ class CallStatusResponse(BaseModel):
 
 
 # =============================================================================
-# Agent Management
-# =============================================================================
-
-@router.get("/voices")
-async def list_voices():
-    """Get available ElevenLabs voices for the agent."""
-    try:
-        voices = await elevenlabs.get_voices()
-        return {"success": True, "voices": voices}
-    except Exception as e:
-        logger.error(f"Failed to get voices: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/agent")
-async def create_agent(config: AgentConfigRequest):
-    """
-    Create a new AI calling agent.
-    
-    Returns the agent_id to use for calls.
-    """
-    from app.services.elevenlabs import AgentConfig, VoiceConfig
-    
-    try:
-        agent_config = AgentConfig(
-            name=config.name,
-            company_name=config.company_name,
-            first_message=config.first_message,
-            system_prompt=config.system_prompt or "",
-            voice=VoiceConfig(voice_id=config.voice_id),
-            language=config.language,
-        )
-        agent_id = await elevenlabs.create_agent(agent_config)
-        return {"success": True, "agent_id": agent_id}
-    except Exception as e:
-        logger.error(f"Failed to create agent: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-# =============================================================================
 # Single Call Operations
 # =============================================================================
 
@@ -144,51 +91,40 @@ async def initiate_call(req: InitiateCallRequest):
     """
     Initiate a single outbound call.
     
+    Requires ELEVENLABS_AGENT_ID and ELEVENLABS_PHONE_NUMBER_ID to be configured.
     Can optionally link to a Google Sheet row for automatic result updates.
     """
-    from app.services.elevenlabs import AgentConfig, VoiceConfig
-    
     try:
-        # Build agent config if provided
-        agent_config = None
-        if req.agent_config:
-            agent_config = AgentConfig(
-                name=req.agent_config.name,
-                company_name=req.agent_config.company_name,
-                first_message=req.agent_config.first_message,
-                system_prompt=req.agent_config.system_prompt or "",
-                voice=VoiceConfig(voice_id=req.agent_config.voice_id),
-                language=req.agent_config.language,
+        agent_id = settings.elevenlabs_agent_id
+        phone_number_id = settings.elevenlabs_phone_number_id
+        
+        if not settings.mock_mode and (not agent_id or not phone_number_id):
+            raise HTTPException(
+                status_code=400,
+                detail="ELEVENLABS_AGENT_ID and ELEVENLABS_PHONE_NUMBER_ID must be configured"
             )
         
-        # Add sheet info to metadata
-        metadata = req.metadata or {}
-        if req.spreadsheet_id and req.sheet_row_number:
-            metadata["spreadsheet_id"] = req.spreadsheet_id
-            metadata["sheet_row_number"] = req.sheet_row_number
-        
-        # Determine webhook URL for callbacks
-        webhook_url = None
-        if settings.app_env != "local":
-            # In production, use the actual webhook URL
-            webhook_url = f"https://your-domain.com/api/webhooks/elevenlabs"
-        
-        result = await elevenlabs.initiate_call(
+        result = await elevenlabs.initiate_outbound_call(
             phone_number=req.phone_number,
-            agent_id=req.agent_id or settings.elevenlabs_agent_id,
-            agent_config=agent_config,
-            metadata=metadata,
-            webhook_url=webhook_url,
+            agent_id=agent_id or "mock-agent",
+            phone_number_id=phone_number_id or "mock-phone",
+            first_message=req.first_message,
+            dynamic_variables=req.dynamic_variables,
         )
         
         return CallResult(
-            call_id=result.call_id,
-            status=result.status.value,
-            phone_number=result.phone_number,
-            started_at=result.started_at,
-            metadata=result.metadata,
+            call_id=result.get("call_id", ""),
+            status=result.get("status", "unknown"),
+            phone_number=req.phone_number,
+            started_at=datetime.now(),
+            metadata={
+                "spreadsheet_id": req.spreadsheet_id,
+                "sheet_row_number": req.sheet_row_number,
+            } if req.spreadsheet_id else {},
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to initiate call: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -202,39 +138,45 @@ async def get_call_status(call_id: str, analyze: bool = True):
     If analyze=True, also runs AI analysis on the transcript.
     """
     try:
-        details = await elevenlabs.get_call_status(call_id)
+        details = await elevenlabs.get_call_details(call_id)
         
-        response = CallStatusResponse(
-            call_id=details.call_id,
-            status=details.status.value,
-            phone_number=details.phone_number,
-            duration_seconds=details.duration_seconds,
-            transcript=details.transcript,
-            recording_url=details.recording_url,
-        )
+        transcript = details.get("transcript")
+        summary = None
+        outcome = None
+        sentiment = None
         
         # Run AI analysis if we have a transcript
-        if analyze and details.transcript:
-            summary = claude.summarize_transcript(details.transcript)
-            response.summary = summary.brief
-            response.outcome = summary.outcome
-            response.sentiment = summary.customer_sentiment
+        if analyze and transcript:
+            ai_summary = claude.summarize_transcript(transcript)
+            summary = ai_summary.brief
+            outcome = ai_summary.outcome
+            sentiment = ai_summary.customer_sentiment
         
-        return response
+        return CallStatusResponse(
+            call_id=call_id,
+            status=details.get("status", "unknown"),
+            phone_number=details.get("phone_number", ""),
+            duration_seconds=details.get("duration_seconds"),
+            transcript=transcript,
+            summary=summary,
+            outcome=outcome,
+            sentiment=sentiment,
+            recording_url=details.get("recording_url"),
+        )
         
     except Exception as e:
         logger.error(f"Failed to get call status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/call/{call_id}/cancel")
-async def cancel_call(call_id: str):
-    """Cancel a queued or in-progress call."""
+@router.get("/call/{call_id}/transcript")
+async def get_call_transcript(call_id: str):
+    """Get the transcript of a call."""
     try:
-        success = await elevenlabs.cancel_call(call_id)
-        return {"success": success}
+        transcript = await elevenlabs.get_call_transcript(call_id)
+        return {"success": True, "call_id": call_id, "transcript": transcript}
     except Exception as e:
-        logger.error(f"Failed to cancel call: {e}")
+        logger.error(f"Failed to get transcript: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -243,7 +185,7 @@ async def cancel_call(call_id: str):
 # =============================================================================
 
 @router.post("/call-from-sheet")
-async def call_from_sheet(req: CallFromSheetRequest, background_tasks: BackgroundTasks):
+async def call_from_sheet(req: CallFromSheetRequest):
     """
     Call a lead directly from a Google Sheet row.
     
@@ -271,36 +213,42 @@ async def call_from_sheet(req: CallFromSheetRequest, background_tasks: Backgroun
                 detail=f"No phone number in column '{req.phone_column}'"
             )
         
-        # Prepare metadata with all row data
-        metadata = {
-            "spreadsheet_id": req.spreadsheet_id,
-            "sheet_row_number": req.row_number,
-            "result_column": req.result_column,
-            "lead_data": row.data,
-        }
+        # Prepare dynamic variables from row data
+        dynamic_vars = {k: str(v) for k, v in row.data.items() if v is not None}
+        
+        agent_id = settings.elevenlabs_agent_id
+        phone_number_id = settings.elevenlabs_phone_number_id
+        
+        if not settings.mock_mode and (not agent_id or not phone_number_id):
+            raise HTTPException(
+                status_code=400,
+                detail="ELEVENLABS_AGENT_ID and ELEVENLABS_PHONE_NUMBER_ID must be configured"
+            )
         
         # Initiate the call
-        result = await elevenlabs.initiate_call(
+        result = await elevenlabs.initiate_outbound_call(
             phone_number=str(phone),
-            agent_id=req.agent_id or settings.elevenlabs_agent_id,
-            metadata=metadata,
+            agent_id=agent_id or "mock-agent",
+            phone_number_id=phone_number_id or "mock-phone",
+            dynamic_variables=dynamic_vars,
         )
         
+        call_id = result.get("call_id", "")
+        
         # Update sheet that call was initiated
-        if req.result_column:
+        if req.result_column and call_id:
             dynamic_sheets.update_row(
                 spreadsheet_id=req.spreadsheet_id,
                 row_number=req.row_number,
-                updates={req.result_column: f"Calling... ({result.call_id})"},
+                updates={req.result_column: f"Calling... ({call_id})"},
                 sheet_name=req.sheet_name,
             )
         
         return {
             "success": True,
-            "call_id": result.call_id,
-            "status": result.status.value,
+            "call_id": call_id,
             "phone_number": str(phone),
-            "lead_data": row.data,
+            "row_data": row.data,
         }
         
     except HTTPException:
@@ -310,42 +258,46 @@ async def call_from_sheet(req: CallFromSheetRequest, background_tasks: Backgroun
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/batch-call-from-sheet")
-async def batch_call_from_sheet(
-    req: BatchCallFromSheetRequest,
-    background_tasks: BackgroundTasks,
-):
+@router.post("/batch-call")
+async def batch_call_from_sheet(req: BatchCallFromSheetRequest):
     """
-    Call multiple leads from a Google Sheet.
+    Batch call multiple leads from a Google Sheet.
     
-    Reads rows from the sheet, filters if needed, and initiates calls.
+    1. Reads rows from the sheet
+    2. Filters by criteria if provided
+    3. Initiates calls for each row
+    4. Updates result column if provided
     """
     try:
-        # Get all data from the sheet
-        schema, all_rows = dynamic_sheets.read_all_data(
+        # Read all data from sheet
+        data_result = dynamic_sheets.read_data(
             spreadsheet_id=req.spreadsheet_id,
             sheet_name=req.sheet_name,
         )
         
+        if not data_result or not data_result.rows:
+            raise HTTPException(status_code=404, detail="No data found in sheet")
+        
         # Filter rows
         rows_to_call = []
-        for row in all_rows:
+        for row in data_result.rows:
+            # Skip rows before start_row
             if row.row_number < req.start_row:
                 continue
             
-            # Check filter if specified
+            # Apply filter if specified
             if req.filter_column and req.filter_value:
-                cell_value = str(row.data.get(req.filter_column, "")).strip().lower()
-                if cell_value != req.filter_value.lower():
+                if row.data.get(req.filter_column) != req.filter_value:
                     continue
             
-            # Check if has phone number
+            # Check for phone number
             phone = row.data.get(req.phone_column)
             if not phone:
                 continue
             
             rows_to_call.append(row)
             
+            # Limit number of calls
             if len(rows_to_call) >= req.max_calls:
                 break
         
@@ -356,50 +308,56 @@ async def batch_call_from_sheet(
                 "calls_initiated": 0,
             }
         
+        agent_id = settings.elevenlabs_agent_id
+        phone_number_id = settings.elevenlabs_phone_number_id
+        
+        if not settings.mock_mode and (not agent_id or not phone_number_id):
+            raise HTTPException(
+                status_code=400,
+                detail="ELEVENLABS_AGENT_ID and ELEVENLABS_PHONE_NUMBER_ID must be configured"
+            )
+        
         # Initiate calls
         results = []
         for row in rows_to_call:
-            phone = row.data.get(req.phone_column)
-            
             try:
-                metadata = {
-                    "spreadsheet_id": req.spreadsheet_id,
-                    "sheet_row_number": row.row_number,
-                    "result_column": req.result_column,
-                    "lead_data": row.data,
-                }
+                phone = str(row.data.get(req.phone_column))
+                dynamic_vars = {k: str(v) for k, v in row.data.items() if v is not None}
                 
-                result = await elevenlabs.initiate_call(
-                    phone_number=str(phone),
-                    agent_id=req.agent_id or settings.elevenlabs_agent_id,
-                    metadata=metadata,
+                result = await elevenlabs.initiate_outbound_call(
+                    phone_number=phone,
+                    agent_id=agent_id or "mock-agent",
+                    phone_number_id=phone_number_id or "mock-phone",
+                    dynamic_variables=dynamic_vars,
                 )
                 
-                # Update sheet
-                if req.result_column:
+                call_id = result.get("call_id", "")
+                
+                # Update sheet with call ID
+                if req.result_column and call_id:
                     dynamic_sheets.update_row(
                         spreadsheet_id=req.spreadsheet_id,
                         row_number=row.row_number,
-                        updates={req.result_column: f"Calling... ({result.call_id})"},
+                        updates={req.result_column: f"Calling... ({call_id})"},
                         sheet_name=req.sheet_name,
                     )
                 
                 results.append({
                     "row_number": row.row_number,
-                    "call_id": result.call_id,
-                    "status": result.status.value,
-                    "phone": str(phone),
+                    "phone_number": phone,
+                    "call_id": call_id,
+                    "success": True,
                 })
                 
             except Exception as e:
-                logger.error(f"Failed to call row {row.row_number}: {e}")
                 results.append({
                     "row_number": row.row_number,
+                    "phone_number": row.data.get(req.phone_column, ""),
                     "error": str(e),
-                    "phone": str(phone),
+                    "success": False,
                 })
         
-        successful = sum(1 for r in results if "call_id" in r)
+        successful = sum(1 for r in results if r.get("success"))
         
         return {
             "success": True,
@@ -408,88 +366,76 @@ async def batch_call_from_sheet(
             "results": results,
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed batch call: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# =============================================================================
-# Webhooks (for call completion callbacks)
-# =============================================================================
-
-@router.post("/webhook/call-complete")
-async def handle_call_complete(payload: dict):
+@router.post("/update-sheet-result")
+async def update_sheet_with_call_result(
+    spreadsheet_id: str,
+    row_number: int,
+    call_id: str,
+    result_column: str,
+    sheet_name: Optional[str] = None,
+):
     """
-    Handle webhook when a call completes.
+    Update a Google Sheet row with call results.
     
-    This is called by ElevenLabs when a call finishes.
-    It:
-    1. Gets the full transcript
-    2. Analyzes it with Claude
-    3. Updates the Google Sheet with results
+    Fetches call details, runs AI analysis, and updates the sheet.
     """
     try:
-        call_id = payload.get("call_id")
-        status = payload.get("status")
-        transcript = payload.get("transcript")
-        metadata = payload.get("metadata", {})
+        # Get call details
+        details = await elevenlabs.get_call_details(call_id)
         
-        logger.info(f"Call {call_id} completed with status {status}")
+        transcript = details.get("transcript")
+        status = details.get("status", "unknown")
+        duration = details.get("duration_seconds", 0)
         
-        # Analyze transcript
-        summary = None
+        # Build result string
+        result_parts = [f"Status: {status}", f"Duration: {duration}s"]
+        
+        # Add AI summary if transcript available
         if transcript:
-            summary = claude.summarize_transcript(transcript, context=metadata.get("lead_data"))
+            summary = claude.summarize_transcript(transcript)
+            result_parts.append(f"Outcome: {summary.outcome}")
+            result_parts.append(f"Sentiment: {summary.customer_sentiment}")
+            result_parts.append(f"Summary: {summary.brief}")
         
-        # Update Google Sheet if linked
-        spreadsheet_id = metadata.get("spreadsheet_id")
-        row_number = metadata.get("sheet_row_number")
-        result_column = metadata.get("result_column")
+        result_text = " | ".join(result_parts)
         
-        if spreadsheet_id and row_number and result_column:
-            result_text = summary.outcome if summary else status
-            if summary:
-                result_text += f" | {summary.brief}"
-            
-            dynamic_sheets.update_row(
-                spreadsheet_id=spreadsheet_id,
-                row_number=row_number,
-                updates={result_column: result_text},
-            )
-            logger.info(f"Updated sheet row {row_number} with result")
+        # Update sheet
+        dynamic_sheets.update_row(
+            spreadsheet_id=spreadsheet_id,
+            row_number=row_number,
+            updates={result_column: result_text},
+            sheet_name=sheet_name,
+        )
         
         return {
             "success": True,
             "call_id": call_id,
-            "outcome": summary.outcome if summary else None,
-            "sentiment": summary.customer_sentiment if summary else None,
+            "result": result_text,
         }
         
     except Exception as e:
-        logger.error(f"Failed to handle webhook: {e}")
-        return {"success": False, "error": str(e)}
+        logger.error(f"Failed to update sheet: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # =============================================================================
-# Usage & Health
+# Health Check
 # =============================================================================
-
-@router.get("/usage")
-async def get_usage():
-    """Get ElevenLabs API usage statistics."""
-    try:
-        usage = await elevenlabs.get_usage()
-        return {"success": True, "usage": usage}
-    except Exception as e:
-        return {"success": False, "error": str(e)}
-
 
 @router.get("/health")
 async def voice_health():
-    """Check health of voice calling service."""
+    """Check the health of voice calling services."""
     return {
         "status": "healthy",
         "elevenlabs_configured": bool(settings.elevenlabs_api_key),
         "agent_id_configured": bool(settings.elevenlabs_agent_id),
+        "phone_number_id_configured": bool(settings.elevenlabs_phone_number_id),
         "mock_mode": settings.mock_mode,
     }
