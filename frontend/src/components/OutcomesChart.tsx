@@ -1,5 +1,7 @@
+import { memo } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 
+// Move static data outside component to prevent recreation
 const outcomeData = [
   { name: "Booked", value: 23, color: "hsl(142, 71%, 45%)" },
   { name: "No Answer", value: 34, color: "hsl(220, 9%, 46%)" },
@@ -9,9 +11,20 @@ const outcomeData = [
   { name: "Opt-out", value: 3, color: "hsl(220, 13%, 18%)" },
 ];
 
-export function OutcomesChart() {
+// Memoize tooltip and legend styles
+const tooltipStyle = {
+  backgroundColor: 'hsl(0 0% 100%)',
+  border: '1px solid hsl(220 13% 91%)',
+  borderRadius: '8px',
+  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+};
+
+const tooltipFormatter = (value: number) => [`${value} calls`, ''];
+const legendFormatter = (value: string) => <span className="text-sm text-foreground">{value}</span>;
+
+export const OutcomesChart = memo(function OutcomesChart() {
   return (
-    <div className="bg-card rounded-xl border border-border p-6">
+    <div className="bg-card rounded-xl border border-border p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
       <h2 className="text-lg font-semibold text-foreground mb-6">Outcomes Breakdown</h2>
       
       <div className="h-[280px]">
@@ -31,13 +44,8 @@ export function OutcomesChart() {
               ))}
             </Pie>
             <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'hsl(0 0% 100%)', 
-                border: '1px solid hsl(220 13% 91%)',
-                borderRadius: '8px',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-              }}
-              formatter={(value: number) => [`${value} calls`, '']}
+              contentStyle={tooltipStyle}
+              formatter={tooltipFormatter}
             />
             <Legend 
               layout="vertical" 
@@ -45,7 +53,7 @@ export function OutcomesChart() {
               verticalAlign="middle"
               iconType="circle"
               iconSize={8}
-              formatter={(value) => <span className="text-sm text-foreground">{value}</span>}
+              formatter={legendFormatter}
             />
           </PieChart>
         </ResponsiveContainer>
@@ -59,4 +67,4 @@ export function OutcomesChart() {
       </div>
     </div>
   );
-}
+});

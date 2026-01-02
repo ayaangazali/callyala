@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const callsData = [
@@ -12,9 +13,9 @@ const callsData = [
   { time: "4PM", calls: 7, answered: 5 },
 ];
 
-export function CallsOverTimeChart() {
+export const CallsOverTimeChart = memo(function CallsOverTimeChart() {
   return (
-    <div className="bg-card rounded-xl border border-border p-6">
+    <div className="bg-card rounded-xl border border-border p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-foreground">Calls Over Time</h2>
         <div className="flex items-center gap-4 text-xs">
@@ -83,4 +84,4 @@ export function CallsOverTimeChart() {
       </div>
     </div>
   );
-}
+});

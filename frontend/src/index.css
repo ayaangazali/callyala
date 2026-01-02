@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -18,8 +19,8 @@
 
 @layer base {
   :root {
-    /* Light theme (secondary) */
-    --background: 220 20% 97%;
+    /* Light theme (secondary) with enhanced colors */
+    --background: 220 20% 98%;
     --foreground: 220 20% 10%;
 
     --card: 0 0% 100%;
@@ -28,44 +29,61 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 10%;
 
-    --primary: 168 84% 39%;
+    --primary: 24 95% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 14% 92%;
-    --secondary-foreground: 220 20% 20%;
+    --secondary: 220 13% 95%;
+    --secondary-foreground: 220 20% 10%;
 
-    --muted: 220 14% 92%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 220 13% 95%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 168 84% 39%;
+    --accent: 24 95% 53%;
     --accent-foreground: 0 0% 100%;
 
-    --success: 152 76% 40%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 10%;
+    --warning-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 100%;
 
-    --border: 220 13% 88%;
-    --input: 220 13% 88%;
-    --ring: 168 84% 39%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 24 95% 53%;
 
-    --radius: 0.625rem;
-
+    --radius: 0.75rem;
+    
+    /* Glass morphism */
+    --glass-background: 0 0% 100% / 0.7;
+    --glass-border: 220 13% 91% / 0.3;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(24, 95%, 53%) 0%, hsl(38, 92%, 50%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(142, 71%, 45%) 0%, hsl(168, 76%, 36%) 100%);
+    --gradient-info: linear-gradient(135deg, hsl(199, 89%, 48%) 0%, hsl(220, 89%, 60%) 100%);
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-colored: 0 10px 30px -5px hsl(24 95% 53% / 0.2);
+    
+    /* Sidebar */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 220 10% 45%;
     --sidebar-primary: 220 20% 14%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 168 84% 95%;
-    --sidebar-accent-foreground: 168 84% 32%;
+    --sidebar-accent: 24 95% 95%;
+    --sidebar-accent-foreground: 24 95% 45%;
     --sidebar-border: 220 13% 90%;
-    --sidebar-ring: 168 84% 39%;
-
-    --glass-background: 0 0% 100% / 0.7;
-    --glass-border: 0 0% 100% / 0.2;
+    --sidebar-ring: 24 95% 53%;
   }
 
   .dark {
@@ -290,3 +308,354 @@
     @apply bg-muted/30;
   }
 }
+
+/* RTL Support */
+[dir="rtl"] {
+  direction: rtl;
+}
+
+/* ============================================================================
+   RTL (Right-to-Left) Support for Arabic
+   ============================================================================ */
+
+[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Mirror icons and directional elements */
+[dir="rtl"] .rtl\:mirror {
+  transform: scaleX(-1);
+}
+
+/* Fix spacing utilities */
+[dir="rtl"] .space-x-1 > * + * {
+  margin-left: 0;
+  margin-right: 0.25rem;
+}
+
+[dir="rtl"] .space-x-2 > * + * {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+
+[dir="rtl"] .space-x-3 > * + * {
+  margin-left: 0;
+  margin-right: 0.75rem;
+}
+
+[dir="rtl"] .space-x-4 > * + * {
+  margin-left: 0;
+  margin-right: 1rem;
+}
+
+[dir="rtl"] .space-x-6 > * + * {
+  margin-left: 0;
+  margin-right: 1.5rem;
+}
+
+/* Fix margin utilities */
+[dir="rtl"] .ml-auto {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+[dir="rtl"] .mr-auto {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+[dir="rtl"] .ml-1 {
+  margin-left: 0;
+  margin-right: 0.25rem;
+}
+
+[dir="rtl"] .ml-2 {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+
+[dir="rtl"] .ml-3 {
+  margin-left: 0;
+  margin-right: 0.75rem;
+}
+
+[dir="rtl"] .ml-4 {
+  margin-left: 0;
+  margin-right: 1rem;
+}
+
+[dir="rtl"] .mr-1 {
+  margin-right: 0;
+  margin-left: 0.25rem;
+}
+
+[dir="rtl"] .mr-2 {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+[dir="rtl"] .mr-3 {
+  margin-right: 0;
+  margin-left: 0.75rem;
+}
+
+[dir="rtl"] .mr-4 {
+  margin-right: 0;
+  margin-left: 1rem;
+}
+
+/* Fix padding utilities */
+[dir="rtl"] .pl-1 {
+  padding-left: 0;
+  padding-right: 0.25rem;
+}
+
+[dir="rtl"] .pl-2 {
+  padding-left: 0;
+  padding-right: 0.5rem;
+}
+
+[dir="rtl"] .pl-3 {
+  padding-left: 0;
+  padding-right: 0.75rem;
+}
+
+[dir="rtl"] .pl-4 {
+  padding-left: 0;
+  padding-right: 1rem;
+}
+
+[dir="rtl"] .pr-1 {
+  padding-right: 0;
+  padding-left: 0.25rem;
+}
+
+[dir="rtl"] .pr-2 {
+  padding-right: 0;
+  padding-left: 0.5rem;
+}
+
+[dir="rtl"] .pr-3 {
+  padding-right: 0;
+  padding-left: 0.75rem;
+}
+
+[dir="rtl"] .pr-4 {
+  padding-right: 0;
+  padding-left: 1rem;
+}
+
+/* Fix text alignment */
+[dir="rtl"] .text-left {
+  text-align: right;
+}
+
+[dir="rtl"] .text-right {
+  text-align: left;
+}
+
+/* Fix border radius */
+[dir="rtl"] .rounded-l-lg {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+}
+
+[dir="rtl"] .rounded-r-lg {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-top-left-radius: 0.5rem;
+  border-bottom-left-radius: 0.5rem;
+}
+
+/* Fix flex row-reverse for RTL */
+[dir="rtl"] .flex-row {
+  flex-direction: row-reverse;
+}
+
+/* Fix positioning */
+[dir="rtl"] .left-0 {
+  left: auto;
+  right: 0;
+}
+
+[dir="rtl"] .right-0 {
+  right: auto;
+  left: 0;
+}
+
+[dir="rtl"] .left-4 {
+  left: auto;
+  right: 1rem;
+}
+
+[dir="rtl"] .right-4 {
+  right: auto;
+  left: 1rem;
+}
+
+/* Fix transform origin */
+[dir="rtl"] .origin-left {
+  transform-origin: right;
+}
+
+[dir="rtl"] .origin-right {
+  transform-origin: left;
+}
+
+/* Fix sidebar positioning */
+[dir="rtl"] .sidebar {
+  left: auto;
+  right: 0;
+}
+
+/* Fix dropdown menus */
+[dir="rtl"] [data-radix-popper-content-wrapper] {
+  left: auto !important;
+  right: 0 !important;
+}
+
+/* Fix icons in buttons and navigation */
+[dir="rtl"] .lucide {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+[dir="rtl"] button .lucide:first-child {
+  margin-right: 0.5rem;
+  margin-left: 0;
+}
+
+[dir="rtl"] button .lucide:last-child {
+  margin-left: 0.5rem;
+  margin-right: 0;
+}
+
+/* Fix gap utilities */
+[dir="rtl"] .gap-x-2 {
+  column-gap: 0.5rem;
+}
+
+[dir="rtl"] .gap-x-4 {
+  column-gap: 1rem;
+}
+
+/* Fix table text alignment */
+[dir="rtl"] table {
+  direction: rtl;
+}
+
+[dir="rtl"] th,
+[dir="rtl"] td {
+  text-align: right;
+}
+
+[dir="rtl"] th:first-child,
+[dir="rtl"] td:first-child {
+  text-align: right;
+}
+
+[dir="rtl"] th:last-child,
+[dir="rtl"] td:last-child {
+  text-align: left;
+}
+
+/* Fix breadcrumb separator */
+[dir="rtl"] .breadcrumb-separator {
+  transform: scaleX(-1);
+}
+
+/* Fix chevron icons */
+[dir="rtl"] .lucide-chevron-right {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .lucide-chevron-left {
+  transform: scaleX(-1);
+}
+
+/* Fix arrow icons */
+[dir="rtl"] .lucide-arrow-right {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .lucide-arrow-left {
+  transform: scaleX(-1);
+}
+
+/* Arabic font support */
+[dir="rtl"] * {
+  font-family: 'Tajawal', 'Inter', sans-serif;
+  letter-spacing: 0;
+}
+
+/* Fix number display in RTL */
+[dir="rtl"] .number,
+[dir="rtl"] [data-number],
+[dir="rtl"] .stat-value {
+  direction: ltr;
+  display: inline-block;
+}
+
+/* Ensure proper line height for Arabic text */
+[dir="rtl"] p,
+[dir="rtl"] span,
+[dir="rtl"] div {
+  line-height: 1.8;
+}
+
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4,
+[dir="rtl"] h5,
+[dir="rtl"] h6 {
+  line-height: 1.4;
+}
+
+/* Fix form inputs */
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+  text-align: right;
+}
+
+[dir="rtl"] input::placeholder,
+[dir="rtl"] textarea::placeholder {
+  text-align: right;
+}
+
+/* Fix checkbox and radio alignment */
+[dir="rtl"] .checkbox-wrapper,
+[dir="rtl"] .radio-wrapper {
+  flex-direction: row-reverse;
+}
+
+/* Fix notification/toast positioning */
+[dir="rtl"] [data-sonner-toaster] {
+  left: auto !important;
+  right: 0 !important;
+}
+
+/* Fix dialog/modal positioning */
+[dir="rtl"] [role="dialog"] {
+  text-align: right;
+}
+
+/* Fix command palette */
+[dir="rtl"] [cmdk-root] {
+  text-align: right;
+}
+
+[dir="rtl"] [cmdk-input] {
+  text-align: right;
+}
+
+/* Fix scrollbar for RTL */
+[dir="rtl"] ::-webkit-scrollbar {
+  left: 0;
+  right: auto;
+}
+

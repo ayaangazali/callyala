@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   Settings as SettingsIcon,
   User,
@@ -26,6 +27,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +51,13 @@ import { blurIn, staggerContainer, staggerItem } from "@/lib/motion";
 const Settings = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [theme, setTheme] = useState("system");
+  const { t, i18n } = useTranslation();
+  const currentLanguage = i18n.language;
+
+  const toggleLanguage = () => {
+    const newLang = currentLanguage === 'en' ? 'ar' : 'en';
+    i18n.changeLanguage(newLang);
+  };
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -63,15 +72,18 @@ const Settings = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">Settings</h1>
+            <h1 className="text-2xl font-semibold text-foreground">{t('settings.title')}</h1>
             <p className="text-muted-foreground text-sm">
-              Manage your account and application preferences
+              {t('settings.subtitle')}
             </p>
           </div>
-          <Button>
-            <Save className="w-4 h-4 mr-2" />
-            Save All Changes
-          </Button>
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher size="lg" />
+            <Button>
+              <Save className="w-4 h-4 mr-2" />
+              {t('common.saveAllChanges')}
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="account" className="space-y-6">

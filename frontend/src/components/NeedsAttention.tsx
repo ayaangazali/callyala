@@ -1,6 +1,8 @@
+import { memo } from "react";
 import { AlertTriangle, PhoneCall, Frown, Clock, AlertCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// Move static data outside component to prevent recreation on every render
 const attentionItems = [
   {
     id: 1,
@@ -55,7 +57,7 @@ const priorityColors = {
   low: "text-muted-foreground bg-muted",
 };
 
-export function NeedsAttention() {
+export const NeedsAttention = memo(function NeedsAttention() {
   return (
     <div className="bg-card rounded-xl border border-border p-6">
       <div className="flex items-center justify-between mb-4">
@@ -92,4 +94,4 @@ export function NeedsAttention() {
       </div>
     </div>
   );
-}
+});

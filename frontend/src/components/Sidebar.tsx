@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, memo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { 
   LayoutDashboard, 
   Phone, 
@@ -19,14 +20,14 @@ import { cn } from "@/lib/utils";
 import { staggerContainer, staggerItem } from "@/lib/motion";
 
 const navItems = [
-  { title: "Overview", url: "/", icon: LayoutDashboard },
-  { title: "Calls", url: "/calls", icon: Phone },
-  { title: "Campaigns", url: "/campaigns", icon: Megaphone },
-  { title: "Appointments", url: "/appointments", icon: Calendar },
-  { title: "Customers & Vehicles", url: "/customers", icon: Car },
-  { title: "Scripts & Prompts", url: "/scripts", icon: FileText },
-  { title: "QA / Review", url: "/qa", icon: ShieldCheck },
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "dashboard", url: "/", icon: LayoutDashboard },
+  { title: "calls", url: "/calls", icon: Phone },
+  { title: "campaigns", url: "/campaigns", icon: Megaphone },
+  { title: "appointments", url: "/appointments", icon: Calendar },
+  { title: "customers", url: "/customers", icon: Car },
+  { title: "scripts", url: "/scripts", icon: FileText },
+  { title: "qa", url: "/qa", icon: ShieldCheck },
+  { title: "settings", url: "/settings", icon: Settings },
 ];
 
 const quickStats = [
@@ -40,9 +41,22 @@ interface SidebarProps {
   onCollapse?: (collapsed: boolean) => void;
 }
 
-export function Sidebar({ collapsed = false, onCollapse }: SidebarProps) {
+export const Sidebar = memo(function Sidebar({ collapsed = false, onCollapse }: SidebarProps) {
   const location = useLocation();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const { t } = useTranslation();
+
+  const handleMouseEnter = useCallback((title: string) => {
+    setHoveredItem(title);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setHoveredItem(null);
+  }, []);
+
+  const handleCollapse = useCallback(() => {
+    onCollapse?.(!collapsed);
+  }, [collapsed, onCollapse]);
 
   return (
     <motion.aside
@@ -78,9 +92,9 @@ export function Sidebar({ collapsed = false, onCollapse }: SidebarProps) {
       {/* Collapse button */}
       <button
         onClick={() => onCollapse?.(!collapsed)}
-        className="absolute -right-3 top-7 w-6 h-6 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shadow-sm z-50"
+        className="absolute -right-3 top-7 w-6 h-6 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shadow-sm z-50 rtl:-left-3 rtl:right-auto"
       >
-        {collapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+        {collapsed ? <ChevronRight className="w-3 h-3 rtl:rotate-180" /> : <ChevronLeft className="w-3 h-3 rtl:rotate-180" />}
       </button>
 
       {/* Navigation */}
@@ -181,7 +195,7 @@ export function Sidebar({ collapsed = false, onCollapse }: SidebarProps) {
                         exit={{ opacity: 0, x: -10 }}
                         transition={{ duration: 0.15 }}
                       >
-                        {item.title}
+                        {t(`nav.${item.title}`)}
                       </motion.span>
                     )}
                   </AnimatePresence>
@@ -198,7 +212,7 @@ export function Sidebar({ collapsed = false, onCollapse }: SidebarProps) {
                         transition={{ type: "spring", stiffness: 400, damping: 25 }}
                         className="absolute left-full ml-2 px-2.5 py-1.5 bg-popover text-popover-foreground text-xs font-medium rounded-md shadow-elevated-sm border border-border whitespace-nowrap z-50"
                       >
-                        {item.title}
+                        {t(`nav.${item.title}`)}
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -316,4 +330,4 @@ export function Sidebar({ collapsed = false, onCollapse }: SidebarProps) {
       </div>
     </motion.aside>
   );
-}
+});

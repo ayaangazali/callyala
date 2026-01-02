@@ -1,6 +1,8 @@
+import { memo } from "react";
 import { motion } from "framer-motion";
 import { LucideIcon, TrendingUp, TrendingDown } from "lucide-react";
 import { useCountUp } from "@/hooks/use-motion";
+import { useLocalizedNumbers } from "@/hooks/use-localized-numbers";
 import { cardHover, iconHover } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +17,7 @@ interface VoiceStatsCardProps {
   index?: number;
 }
 
-export function VoiceStatsCard({ 
+export const VoiceStatsCard = memo(function VoiceStatsCard({ 
   title, 
   value, 
   change, 
@@ -25,35 +27,47 @@ export function VoiceStatsCard({
   trend = "up",
   index = 0
 }: VoiceStatsCardProps) {
-  // Extract numeric value for animation
-  const numericValue = parseFloat(value.replace(/[^0-9.]/g, '')) || 0;
+  const { localizeString, isArabic } = useLocalizedNumbers();
+  
+  // Extract numeric value for animation - handle both Western and Arabic numerals
+  const westernValue = value.replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)));
+  const numericValue = parseFloat(westernValue.replace(/[^0-9.]/g, '')) || 0;
   const animatedValue = useCountUp(numericValue, 800, 0);
   
-  // Format the animated value back
-  const displayValue = value.includes('$') 
-    ? `$${animatedValue}` 
-    : value.includes('%') 
-    ? `${animatedValue}%`
-    : value.includes(':')
-    ? value // Don't animate time values
-    : animatedValue.toString();
+  // Format the animated value back and localize
+  let displayValue: string;
+  if (value.includes('$')) {
+    displayValue = `$${animatedValue}`;
+  } else if (value.includes('%')) {
+    displayValue = `${animatedValue}%`;
+  } else if (value.includes(':')) {
+    // Don't animate time values, just localize
+    displayValue = value;
+  } else {
+    displayValue = animatedValue.toString();
+  }
+  
+  displayValue = localizeString(displayValue);
 
   return (
     <motion.div
-      className="bg-card rounded-xl border border-border p-4 flex-1 min-w-[140px] card-hover relative overflow-hidden group"
+      className="bg-gradient-to-br from-card to-card/50 rounded-xl border border-border p-5 flex-1 min-w-[140px] relative overflow-hidden group shadow-sm hover:shadow-xl hover:border-primary/30 transition-all duration-500"
       initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
       animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       transition={{ 
         delay: index * 0.05,
-        duration: 0.3,
+        duration: 0.4,
         ease: [0.25, 0.46, 0.45, 0.94]
       }}
-      whileHover="hover"
-      variants={cardHover}
+      whileHover={{
+        y: -4,
+        scale: 1.02,
+        transition: { duration: 0.2 }
+      }}
     >
-      {/* Subtle gradient overlay on hover */}
+      {/* Enhanced gradient overlay on hover */}
       <motion.div
-        className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        className="absolute inset-0 bg-gradient-to-br from-primary/8 via-primary/4 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
       />
 
       <div className="relative z-10">
@@ -109,4 +123,4 @@ export function VoiceStatsCard({
       </div>
     </motion.div>
   );
-}
+});

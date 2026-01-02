@@ -2,7 +2,7 @@ import { X, Play, Pause, Volume2, ThumbsUp, Meh, ThumbsDown, Tag, Clock, FileTex
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
-import { useState } from "react";
+import { useState, memo, useCallback } from "react";
 
 interface Call {
   id: string;
@@ -43,8 +43,12 @@ const sentimentColors = {
   negative: "text-destructive bg-destructive/10",
 };
 
-export function CallDetailDrawer({ call, open, onOpenChange }: CallDetailDrawerProps) {
+export const CallDetailDrawer = memo(function CallDetailDrawer({ call, open, onOpenChange }: CallDetailDrawerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
+
+  const togglePlayback = useCallback(() => {
+    setIsPlaying(prev => !prev);
+  }, []);
 
   if (!call) return null;
 
@@ -203,4 +207,4 @@ Agent: Thank you for choosing Al Futtaim Motors. Have a great day!`;
       </SheetContent>
     </Sheet>
   );
-}
+});

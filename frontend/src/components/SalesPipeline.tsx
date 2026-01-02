@@ -1,6 +1,7 @@
+import { memo } from "react";
 import { PieChart } from "lucide-react";
 
-export function SalesPipeline() {
+export const SalesPipeline = memo(function SalesPipeline() {
   return (
     <div className="bg-card rounded-xl border border-border p-6">
       <h2 className="text-xl font-semibold text-foreground mb-8">Sales Pipeline by Stage</h2>
@@ -14,4 +15,4 @@ export function SalesPipeline() {
       </div>
     </div>
   );
-}
+});

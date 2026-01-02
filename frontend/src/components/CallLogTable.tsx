@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo, useCallback, useMemo } from "react";
 import { Play, FileText, ThumbsUp, Meh, ThumbsDown, MoreHorizontal, Phone, RefreshCw, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +32,7 @@ interface Call {
   timestamp: string;
 }
 
+// Move static data outside component to prevent recreation on every render
 const calls: Call[] = [
   {
     id: "1",
@@ -102,6 +103,7 @@ const calls: Call[] = [
   },
 ];
 
+// Move static objects outside component
 const outcomeColors: Record<string, string> = {
   Booked: "bg-success/10 text-success",
   Voicemail: "bg-primary/10 text-primary",
@@ -122,14 +124,14 @@ const sentimentColors = {
   negative: "text-destructive",
 };
 
-export function CallLogTable() {
+export const CallLogTable = memo(function CallLogTable() {
   const [selectedCall, setSelectedCall] = useState<Call | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const handleRowClick = (call: Call) => {
+  const handleRowClick = useCallback((call: Call) => {
     setSelectedCall(call);
     setDrawerOpen(true);
-  };
+  }, []);
 
   return (
     <>
@@ -214,15 +216,15 @@ export function CallLogTable() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem>
-                            <Phone className="w-4 h-4 mr-2" />
+                            <Phone className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
                             Call Now
                           </DropdownMenuItem>
                           <DropdownMenuItem>
-                            <RefreshCw className="w-4 h-4 mr-2" />
+                            <RefreshCw className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
                             Retry
                           </DropdownMenuItem>
                           <DropdownMenuItem>
-                            <UserCheck className="w-4 h-4 mr-2" />
+                            <UserCheck className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
                             Assign to Human
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -243,4 +245,4 @@ export function CallLogTable() {
       />
     </>
   );
-}
+});

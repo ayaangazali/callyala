@@ -1,6 +1,7 @@
+import { memo } from "react";
 import { FileText, ArrowRight } from "lucide-react";
 
-export function RecentActivities() {
+export const RecentActivities = memo(function RecentActivities() {
   return (
     <div className="bg-card rounded-xl border border-border p-6">
       <div className="flex items-center justify-between mb-6">
@@ -20,4 +21,4 @@ export function RecentActivities() {
       </div>
     </div>
   );
-}
+});

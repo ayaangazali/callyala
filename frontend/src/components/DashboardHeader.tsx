@@ -1,6 +1,9 @@
+import { memo, useCallback } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Plus, Upload, Play, Square, Download, Calendar, Search, Command } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import {
   Select,
   SelectContent,
@@ -17,11 +20,13 @@ interface DashboardHeaderProps {
   onToggleCalling?: () => void;
 }
 
-export function DashboardHeader({ 
+export const DashboardHeader = memo(function DashboardHeader({ 
   onOpenCommandPalette, 
   isCallingActive = false,
   onToggleCalling 
 }: DashboardHeaderProps) {
+  const { t } = useTranslation();
+  
   return (
     <motion.div 
       className="flex items-start justify-between mb-6"
@@ -36,7 +41,7 @@ export function DashboardHeader({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          Overview
+          {t('dashboard.title')}
         </motion.h1>
         <motion.p 
           className="text-muted-foreground mt-1"
@@ -44,7 +49,7 @@ export function DashboardHeader({
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          Monitor your voice agent performance and call outcomes.
+          {t('dashboard.subtitle')}
         </motion.p>
       </div>
       
@@ -54,46 +59,49 @@ export function DashboardHeader({
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.2 }}
       >
+        {/* Language Switcher */}
+        <LanguageSwitcher variant="ghost" showLabel={false} size="icon" />
+        
         {/* Search / Command Palette Trigger */}
         <motion.button
           onClick={onOpenCommandPalette}
-          className="flex items-center gap-2 h-9 px-3 text-sm text-muted-foreground bg-secondary/50 hover:bg-secondary border border-border rounded-lg transition-colors"
+          className="flex items-center gap-2 h-9 px-4 text-sm text-muted-foreground bg-secondary/60 hover:bg-secondary/80 border border-border hover:border-border/80 rounded-lg transition-all duration-200 shadow-sm hover:shadow"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
           <Search className="w-4 h-4" />
-          <span className="hidden lg:inline">Search...</span>
-          <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 h-5 text-[10px] font-medium bg-muted rounded border border-border">
+          <span className="hidden lg:inline">{t('common.searchPlaceholder')}</span>
+          <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 h-5 text-[10px] font-medium bg-background/50 rounded border border-border">
             <Command className="w-2.5 h-2.5" />K
           </kbd>
         </motion.button>
 
-        <div className="h-6 w-px bg-border mx-1" />
+        <div className="h-6 w-px bg-border/50 mx-2" />
 
         {/* Date Range Selector */}
         <Select defaultValue="today">
           <SelectTrigger className="w-[130px] h-9 text-sm bg-secondary/50 border-border">
-            <Calendar className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
-            <SelectValue placeholder="Select range" />
+            <Calendar className="w-3.5 h-3.5 mr-2 rtl:mr-0 rtl:ml-2 text-muted-foreground" />
+            <SelectValue placeholder={t('common.select')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="today">Today</SelectItem>
-            <SelectItem value="yesterday">Yesterday</SelectItem>
-            <SelectItem value="week">This Week</SelectItem>
-            <SelectItem value="month">This Month</SelectItem>
+            <SelectItem value="today">{t('stats.today')}</SelectItem>
+            <SelectItem value="yesterday">{t('common.previous')}</SelectItem>
+            <SelectItem value="week">{t('stats.thisWeek')}</SelectItem>
+            <SelectItem value="month">{t('stats.thisMonth')}</SelectItem>
           </SelectContent>
         </Select>
 
         {/* Branch Selector */}
         <Select defaultValue="dubai">
           <SelectTrigger className="w-[150px] h-9 text-sm bg-secondary/50 border-border">
-            <SelectValue placeholder="Select branch" />
+            <SelectValue placeholder={t('common.select')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="dubai">Dubai Branch</SelectItem>
             <SelectItem value="abudhabi">Abu Dhabi Branch</SelectItem>
             <SelectItem value="sharjah">Sharjah Branch</SelectItem>
-            <SelectItem value="all">All Branches</SelectItem>
+            <SelectItem value="all">{t('common.all')} Branches</SelectItem>
           </SelectContent>
         </Select>
 
@@ -102,21 +110,21 @@ export function DashboardHeader({
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button variant="ghost" size="sm" className="gap-2 h-9">
             <Upload className="w-4 h-4" />
-            <span className="hidden xl:inline">Upload</span>
+            <span className="hidden xl:inline">{t('common.upload')}</span>
           </Button>
         </motion.div>
 
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button variant="ghost" size="sm" className="gap-2 h-9">
             <Download className="w-4 h-4" />
-            <span className="hidden xl:inline">Export</span>
+            <span className="hidden xl:inline">{t('common.export')}</span>
           </Button>
         </motion.div>
 
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button variant="secondary" size="sm" className="gap-2 h-9">
             <Plus className="w-4 h-4" />
-            <span className="hidden xl:inline">New Campaign</span>
+            <span className="hidden xl:inline">{t('campaigns.createCampaign')}</span>
           </Button>
         </motion.div>
 
@@ -149,12 +157,12 @@ export function DashboardHeader({
             {isCallingActive ? (
               <>
                 <Square className="w-3.5 h-3.5" />
-                <span>Stop</span>
+                <span>{t('common.stop')}</span>
               </>
             ) : (
               <>
                 <Play className="w-3.5 h-3.5" />
-                <span>Start Calling</span>
+                <span>{t('common.start')} {t('calls.title')}</span>
               </>
             )}
           </Button>
@@ -162,4 +170,4 @@ export function DashboardHeader({
       </motion.div>
     </motion.div>
   );
-}
+});
