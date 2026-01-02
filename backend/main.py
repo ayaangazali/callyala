@@ -16,6 +16,7 @@ from app.api.routes.campaigns import router as campaigns_router
 from app.api.routes.calls import router as calls_router
 from app.api.routes.overview import router as overview_router
 from app.api.routes.webhooks import router as webhooks_router
+from app.api.routes.webhooks_pickup import router as webhooks_pickup_router
 from app.api.routes.sheets import router as sheets_router
 from app.api.routes.appointments import router as appointments_router
 from app.api.routes.customers import router as customers_router
@@ -25,6 +26,7 @@ from app.api.routes.qa import router as qa_router
 from app.api.routes.sheets_dynamic import router as sheets_dynamic_router
 from app.api.routes.ai import router as ai_router
 from app.api.routes.voice import router as voice_router
+from app.api.routes.pickup import router as pickup_router
 
 
 @asynccontextmanager
@@ -69,6 +71,7 @@ app.include_router(campaigns_router)
 app.include_router(calls_router)
 app.include_router(overview_router)
 app.include_router(webhooks_router)
+app.include_router(webhooks_pickup_router)  # Pickup reminder webhooks
 app.include_router(sheets_router)
 app.include_router(appointments_router)
 app.include_router(customers_router)
@@ -78,6 +81,7 @@ app.include_router(qa_router)
 app.include_router(sheets_dynamic_router)  # /api/sheets/v2/*
 app.include_router(ai_router)              # /api/ai/*
 app.include_router(voice_router)           # /api/voice/*
+app.include_router(pickup_router)          # /api/pickup/* (Car pickup reminders)
 
 
 @app.get("/")

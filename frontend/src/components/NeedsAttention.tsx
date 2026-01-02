@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { AlertTriangle, PhoneCall, Frown, Clock, AlertCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { makeQuickCall } from "@/lib/api";
 
 // Move static data outside component to prevent recreation on every render
 const attentionItems = [
@@ -58,6 +59,29 @@ const priorityColors = {
 };
 
 export const NeedsAttention = memo(function NeedsAttention() {
+  // 🚀 Handle action button clicks - REAL CALLS
+  const handleAction = async (item: typeof attentionItems[0]) => {
+    // Extract customer name and vehicle from description
+    const descParts = item.description.split(' - ');
+    const customerName = descParts[0] || 'Customer';
+    const vehicleInfo = descParts[1] || 'Unknown Vehicle';
+    const vehicleParts = vehicleInfo.split(' ');
+    const vehicleMake = vehicleParts[0] || 'Unknown';
+    const vehicleModel = vehicleParts.slice(1).join(' ') || 'Unknown';
+
+    if (item.type === 'retry' || item.type === 'callback') {
+      // Make actual call to +96550525011
+      try {
+        await makeQuickCall(customerName, vehicleMake, vehicleModel);
+      } catch (error) {
+        console.error('Failed to initiate call:', error);
+      }
+    } else {
+      // For other actions, show alert
+      alert(`Action: ${item.action}\n${item.description}`);
+    }
+  };
+
   return (
     <div className="bg-card rounded-xl border border-border p-6">
       <div className="flex items-center justify-between mb-4">
@@ -86,7 +110,7 @@ export const NeedsAttention = memo(function NeedsAttention() {
               <p className="text-sm font-medium text-foreground">{item.title}</p>
               <p className="text-xs text-muted-foreground truncate">{item.description}</p>
             </div>
-            <Button size="sm" variant="outline" className="shrink-0 h-7 text-xs">
+            <Button size="sm" variant="outline" className="shrink-0 h-7 text-xs" onClick={() => handleAction(item)}>
               {item.action}
             </Button>
           </div>

@@ -1,4 +1,5 @@
 import { useState, memo, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Play, FileText, ThumbsUp, Meh, ThumbsDown, MoreHorizontal, Phone, RefreshCw, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CallDetailDrawer } from "./CallDetailDrawer";
+import { makeQuickCall } from "@/lib/api";
 
 interface Call {
   id: string;
@@ -125,6 +127,7 @@ const sentimentColors = {
 };
 
 export const CallLogTable = memo(function CallLogTable() {
+  const { t } = useTranslation();
   const [selectedCall, setSelectedCall] = useState<Call | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -133,27 +136,43 @@ export const CallLogTable = memo(function CallLogTable() {
     setDrawerOpen(true);
   }, []);
 
+  // 🚀 REAL CALL FUNCTION - Calls +96550525011
+  const handleMakeCall = useCallback(async (call: Call, e: React.MouseEvent) => {
+    e.stopPropagation(); // Don't trigger row click
+    
+    // Extract vehicle make and model from full vehicle string
+    const vehicleParts = call.vehicleModel.split(' ');
+    const vehicleMake = vehicleParts[0] || 'Unknown';
+    const vehicleModel = vehicleParts.slice(1).join(' ') || 'Unknown';
+    
+    try {
+      await makeQuickCall(call.customerName, vehicleMake, vehicleModel);
+    } catch (error) {
+      console.error('Call failed:', error);
+    }
+  }, []);
+
   return (
     <>
       <div className="bg-card rounded-xl border border-border">
         <div className="p-4 border-b border-border flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-foreground">Recent Calls</h2>
+          <h2 className="text-lg font-semibold text-foreground">{t('calls.recentCalls')}</h2>
           <Button variant="outline" size="sm">
-            View All Calls
+            {t('calls.viewAllCalls')}
           </Button>
         </div>
         
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[180px]">Customer</TableHead>
-              <TableHead className="w-[160px]">Vehicle</TableHead>
-              <TableHead>Purpose</TableHead>
-              <TableHead>Outcome</TableHead>
-              <TableHead>Booked</TableHead>
-              <TableHead className="text-center">Sentiment</TableHead>
-              <TableHead>Next Action</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="w-[180px]">{t('calls.customer')}</TableHead>
+              <TableHead className="w-[160px]">{t('calls.vehicle')}</TableHead>
+              <TableHead>{t('calls.purpose')}</TableHead>
+              <TableHead>{t('calls.outcome')}</TableHead>
+              <TableHead>{t('calls.booked')}</TableHead>
+              <TableHead className="text-center">{t('calls.sentiment')}</TableHead>
+              <TableHead>{t('calls.nextAction')}</TableHead>
+              <TableHead className="text-right">{t('calls.actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -215,17 +234,17 @@ export const CallLogTable = memo(function CallLogTable() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => handleMakeCall(call, e)}>
                             <Phone className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                            Call Now
+                            {t('calls.callNow')}
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => handleMakeCall(call, e)}>
                             <RefreshCw className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                            Retry
+                            {t('calls.retry')}
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => handleMakeCall(call, e)}>
                             <UserCheck className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                            Assign to Human
+                            {t('calls.assignToHuman')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

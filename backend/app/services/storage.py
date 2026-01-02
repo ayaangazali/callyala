@@ -225,6 +225,38 @@ class StorageService:
         
         return stats
 
+    # ─────────────────────────────────────────────────────────────────────
+    # Pickup Reminder Calls (Simplified storage for demo)
+    # ─────────────────────────────────────────────────────────────────────
+
+    def save_call(self, call_id: str, call_data: dict) -> None:
+        """Save/update a pickup call (simple key-value storage)."""
+        pickup_calls_file = settings.data_dir / "pickup_calls.json"
+        calls = read_json(pickup_calls_file, default={})
+        calls[call_id] = call_data
+        atomic_write_json(pickup_calls_file, calls)
+        logger.debug(f"Saved pickup call {call_id}")
+
+    def get_call_simple(self, call_id: str) -> Optional[dict]:
+        """Get a pickup call by ID (simplified)."""
+        pickup_calls_file = settings.data_dir / "pickup_calls.json"
+        calls = read_json(pickup_calls_file, default={})
+        return calls.get(call_id)
+
+    def list_calls(self, limit: int = 50) -> list[dict]:
+        """List all pickup calls (most recent first)."""
+        pickup_calls_file = settings.data_dir / "pickup_calls.json"
+        calls = read_json(pickup_calls_file, default={})
+        
+        # Convert to list and sort by created_at
+        call_list = []
+        for call_id, call_data in calls.items():
+            call_data["call_id"] = call_id
+            call_list.append(call_data)
+        
+        call_list.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+        return call_list[:limit]
+
 
 # Singleton instance
 storage = StorageService()

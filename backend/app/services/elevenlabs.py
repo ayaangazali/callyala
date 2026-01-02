@@ -63,10 +63,11 @@ class ElevenLabsService:
 
         client = await self._get_client()
         
+        # Payload for ElevenLabs Conversational AI outbound call
         payload = {
             "agent_id": agent_id,
             "phone_number_id": phone_number_id,
-            "to_number": phone_number,
+            "phone_number": phone_number,
         }
         
         if first_message:
@@ -76,8 +77,12 @@ class ElevenLabsService:
             payload["dynamic_variables"] = dynamic_variables
 
         try:
+            # ElevenLabs Conversational AI - initiate phone call
+            endpoint = "/convai/conversation/initiate_phone_call"
+            logger.info(f"Calling ElevenLabs: POST {endpoint} with payload: {payload}")
+            
             response = await client.post(
-                "/convai/conversation/initiate-outbound-call",
+                endpoint,
                 json=payload,
             )
             response.raise_for_status()

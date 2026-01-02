@@ -411,6 +411,101 @@ export const api = {
         byCampaign: { campaign: string; avgScore: number; totalReviewed: number }[];
       }>('/api/qa/trends'),
   },
+
+  // ============================================================================
+  // 🚀 REAL CALLING API - Calls +96550525011 using ElevenLabs
+  // ============================================================================
+  pickup: {
+    /**
+     * Make a real outbound call to +96550525011
+     * Uses ElevenLabs AI to ask about car pickup timing
+     */
+    makeCall: (data: {
+      customer_name: string;
+      vehicle_make: string;
+      vehicle_model: string;
+      service_type?: string;
+      service_notes?: string;
+    }) =>
+      post<{
+        success: boolean;
+        call_id: string;
+        message: string;
+        actual_phone_called: string;
+        customer_name: string;
+        vehicle_info: string;
+        started_at: string;
+      }>('/api/pickup/call', data),
+
+    /**
+     * Get status of a call (includes transcript and AI analysis)
+     */
+    getStatus: (callId: string) =>
+      get<{
+        call_id: string;
+        status: string;
+        customer_name: string;
+        vehicle_info: string;
+        phone_number: string;
+        duration_seconds?: number;
+        pickup_time_scheduled?: string;
+        transcript?: string;
+        summary?: string;
+        sentiment?: string;
+        recording_url?: string;
+        created_at: string;
+        completed_at?: string;
+      }>(`/api/pickup/status/${callId}`, { analyze: true }),
+
+    /**
+     * Get transcript only
+     */
+    getTranscript: (callId: string) =>
+      get<{
+        success: boolean;
+        call_id: string;
+        transcript: string;
+        customer_name: string;
+        vehicle_info: string;
+      }>(`/api/pickup/transcript/${callId}`),
+
+    /**
+     * List all calls
+     */
+    listCalls: (limit: number = 50) =>
+      get<{
+        success: boolean;
+        count: number;
+        calls: any[];
+      }>('/api/pickup/calls', { limit }),
+  },
 };
 
 export default api;
+
+/**
+ * Quick helper function to make a call
+ * ALWAYS calls +96550525011 regardless of customer info
+ */
+export async function makeQuickCall(
+  customerName: string,
+  vehicleMake: string,
+  vehicleModel: string
+) {
+  try {
+    const result = await api.pickup.makeCall({
+      customer_name: customerName,
+      vehicle_make: vehicleMake,
+      vehicle_model: vehicleModel,
+      service_type: 'car servicing completed',
+      service_notes: 'Vehicle is ready for pickup',
+    });
+
+    alert(`✅ Call Started!\n\nCalling: +96550525011\nCustomer: ${customerName}\nCall ID: ${result.call_id}`);
+    return result;
+  } catch (error) {
+    console.error('Call failed:', error);
+    alert(`❌ Call Failed!\n\n${error instanceof Error ? error.message : 'Unknown error'}\n\nMake sure backend is running!`);
+    throw error;
+  }
+}

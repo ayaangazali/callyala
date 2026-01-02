@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react";
+import { memo, useCallback, useState } from "react";
 import { Languages } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -21,33 +21,61 @@ const LanguageSwitcher = memo(function LanguageSwitcher({
   showLabel = true 
 }: LanguageSwitcherProps) {
   const { i18n } = useTranslation();
-  const currentLanguage = i18n.language;
+  const [open, setOpen] = useState(false);
+  
+  // Get current language, handle 'en-US' -> 'en' etc
+  const currentLanguage = i18n.language?.startsWith('ar') ? 'ar' : 'en';
 
-  const changeLanguage = useCallback((lng: string) => {
-    i18n.changeLanguage(lng);
-  }, [i18n]);
+  const changeLanguage = useCallback(async (lng: string) => {
+    try {
+      // Change language
+      await i18n.changeLanguage(lng);
+      
+      // Update document direction
+      const dir = lng === 'ar' ? 'rtl' : 'ltr';
+      document.documentElement.dir = dir;
+      document.documentElement.lang = lng;
+      
+      // Save to localStorage
+      localStorage.setItem('i18nextLng', lng);
+      localStorage.setItem('language', lng);
+      
+      // Close dropdown
+      setOpen(false);
+    } catch (error) {
+      console.error('Failed to change language:', error);
+    }
+  }, [i18n, currentLanguage]);
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant={variant} size={size}>
+        <Button variant={variant} size={size} className="gap-2">
           <Languages className="w-4 h-4" />
           {showLabel && (
-            <span className="ml-2">
-              {currentLanguage === 'en' ? 'English' : 'العربية'}
+            <span>
+              {currentLanguage === 'ar' ? 'العربية' : 'English'}
             </span>
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => changeLanguage('en')}>
-          <span className="flex items-center gap-2">
-            {currentLanguage === 'en' && '✓'} English
+      <DropdownMenuContent align="end" className="min-w-[150px]">
+        <DropdownMenuItem 
+          onClick={() => changeLanguage('en')}
+          className="cursor-pointer"
+        >
+          <span className="flex items-center gap-2 w-full">
+            <span className="w-4">{currentLanguage === 'en' && '✓'}</span>
+            <span>English</span>
           </span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => changeLanguage('ar')}>
-          <span className="flex items-center gap-2">
-            {currentLanguage === 'ar' && '✓'} العربية (Arabic)
+        <DropdownMenuItem 
+          onClick={() => changeLanguage('ar')}
+          className="cursor-pointer"
+        >
+          <span className="flex items-center gap-2 w-full">
+            <span className="w-4">{currentLanguage === 'ar' && '✓'}</span>
+            <span>العربية (Arabic)</span>
           </span>
         </DropdownMenuItem>
       </DropdownMenuContent>
