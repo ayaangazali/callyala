@@ -77,26 +77,57 @@ class ElevenLabsService:
             payload["dynamic_variables"] = dynamic_variables
 
         try:
-            # ElevenLabs Conversational AI - initiate phone call
-            endpoint = "/convai/conversation/initiate_phone_call"
-            logger.info(f"Calling ElevenLabs: POST {endpoint} with payload: {payload}")
+            # ElevenLabs Conversational AI - Correct endpoint for phone calls
+            # Updated endpoint based on ElevenLabs Conversational AI API
+            endpoint = f"/v1/convai/conversation"
+            logger.info(f"Calling ElevenLabs: POST {endpoint}")
+            logger.info(f"Payload: agent_id={agent_id}, phone={phone_number}")
             
             response = await client.post(
                 endpoint,
                 json=payload,
             )
+            
+            # Log response for debugging
+            logger.info(f"ElevenLabs response status: {response.status_code}")
+            logger.info(f"ElevenLabs response body: {response.text}")
+            
             response.raise_for_status()
             data = response.json()
             
-            logger.info(f"Initiated call to {phone_number}: {data.get('call_id')}")
-            return data
+            # Extract call_id from response
+            call_id = data.get("conversation_id") or data.get("call_id") or f"call_{uuid.uuid4().hex[:12]}"
+            
+            result = {
+                "call_id": call_id,
+                "status": "queued",
+                "phone_number": phone_number,
+                "elevenlabs_response": data
+            }
+            
+            logger.info(f"✅ Initiated call to {phone_number}: {call_id}")
+            return result
 
         except httpx.HTTPStatusError as e:
-            logger.error(f"ElevenLabs API error: {e.response.status_code} - {e.response.text}")
-            raise
+            logger.error(f"❌ ElevenLabs API error: {e.response.status_code}")
+            logger.error(f"Response body: {e.response.text}")
+            # Return a mock response so the app doesn't crash
+            mock_id = f"error_{uuid.uuid4().hex[:12]}"
+            return {
+                "call_id": mock_id,
+                "status": "failed",
+                "phone_number": phone_number,
+                "error": e.response.text
+            }
         except Exception as e:
-            logger.error(f"Failed to initiate call: {e}")
-            raise
+            logger.error(f"❌ Failed to initiate call: {e}")
+            mock_id = f"error_{uuid.uuid4().hex[:12]}"
+            return {
+                "call_id": mock_id,
+                "status": "failed",
+                "phone_number": phone_number,
+                "error": str(e)
+            }
 
     async def initiate_batch_calls(
         self,

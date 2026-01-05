@@ -2,7 +2,7 @@
 Car Pickup Reminder - Main Calling Endpoint
 ============================================
 Make real outbound calls to customers for car pickup reminders.
-NO MOCK DATA - Uses real Anthropic and ElevenLabs APIs.
+NO MOCK DATA - Uses real Gemini and ElevenLabs APIs.
 """
 
 from typing import Optional, Any
@@ -11,7 +11,7 @@ from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 
 from app.services.elevenlabs import elevenlabs
-from app.services.claude import claude
+from app.services.gemini import gemini_service
 from app.services.storage import storage
 from app.core.config import settings
 from app.core.logging import logger
@@ -241,8 +241,8 @@ async def get_pickup_call_status(call_id: str, analyze: bool = True):
             try:
                 logger.info(f"Running AI analysis on call {call_id}")
                 
-                # Use Claude to analyze the transcript
-                ai_summary = claude.summarize_transcript(transcript)
+                # Use Gemini to analyze the transcript
+                ai_summary = await gemini_service.summarize_transcript(transcript)
                 summary = ai_summary.brief
                 sentiment = ai_summary.customer_sentiment
                 
