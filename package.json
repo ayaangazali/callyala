@@ -5,7 +5,7 @@
   "description": "Enterprise AI voice agent platform for automotive dealerships",
   "scripts": {
     "dev": "cd frontend && npm run dev",
-    "build": "cd frontend && npm run build",
+    "build": "npm install --prefix frontend && cd frontend && npm run build",
     "preview": "cd frontend && npm run preview",
     "lint": "cd frontend && npm run lint",
     "install:frontend": "cd frontend && npm install",
