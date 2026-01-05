@@ -20,7 +20,7 @@ def check_env_vars():
     print("🔍 Checking environment variables...\n")
     
     checks = {
-        "ANTHROPIC_API_KEY": settings.anthropic_api_key,
+        "GEMINI_API_KEY": settings.gemini_api_key,
         "ELEVENLABS_API_KEY": settings.elevenlabs_api_key,
         "ELEVENLABS_AGENT_ID": settings.elevenlabs_agent_id,
         "ELEVENLABS_PHONE_NUMBER_ID": settings.elevenlabs_phone_number_id,
@@ -71,7 +71,7 @@ def check_imports():
     
     required = [
         ("fastapi", "FastAPI"),
-        ("anthropic", "Anthropic Claude"),
+        ("httpx", "HTTP client for Gemini"),
         ("httpx", "HTTP client for ElevenLabs"),
         ("pydantic", "Data validation"),
     ]

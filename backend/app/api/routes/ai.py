@@ -1,7 +1,7 @@
 """
-AI / Claude API Routes
-======================
-Smart AI features using Anthropic Claude for:
+AI / Gemini API Routes
+=======================
+Smart AI features using Google Gemini for:
 - Transcript summarization
 - Sentiment analysis
 - Lead scoring
@@ -13,7 +13,7 @@ from typing import Optional, Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from app.services.claude import claude, CallSummary, LeadScore, ScriptSuggestion
+from app.services.gemini import gemini_service, CallSummary, LeadScore, ScriptSuggestion
 from app.core.logging import logger
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
@@ -87,7 +87,7 @@ async def summarize_transcript(req: SummarizeRequest):
     - Confidence score
     """
     try:
-        summary = claude.summarize_transcript(
+        summary = gemini_service.summarize_transcript(
             transcript=req.transcript,
             context=req.context,
         )
@@ -109,7 +109,7 @@ async def analyze_sentiment(req: SentimentRequest):
     - Urgency level
     """
     try:
-        result = claude.analyze_sentiment(req.text)
+        result = gemini_service.analyze_sentiment(req.text)
         return {"success": True, **result}
     except Exception as e:
         logger.error(f"Failed to analyze sentiment: {e}")
@@ -129,7 +129,7 @@ async def score_lead(req: LeadScoreRequest):
     - Suggested approach
     """
     try:
-        score = claude.score_lead(
+        score = gemini_service.score_lead(
             lead_data=req.lead_data,
             call_history=req.call_history,
         )
@@ -157,7 +157,7 @@ async def generate_script(req: ScriptRequest):
     - Tone recommendation
     """
     try:
-        script = claude.generate_script(
+        script = gemini_service.generate_script(
             purpose=req.purpose,
             customer_context=req.customer_context,
             tone=req.tone,
@@ -176,7 +176,7 @@ async def suggest_response(req: ResponseSuggestionRequest):
     Returns a concise, professional response suggestion.
     """
     try:
-        response = claude.suggest_response(
+        response = gemini_service.suggest_response(
             customer_message=req.customer_message,
             context=req.context,
         )
@@ -199,7 +199,7 @@ async def extract_entities(req: EntityExtractionRequest):
     - Amounts (monetary values)
     """
     try:
-        entities = claude.extract_entities(req.text)
+        entities = gemini_service.extract_entities(req.text)
         return {"success": True, "entities": entities}
     except Exception as e:
         logger.error(f"Failed to extract entities: {e}")
@@ -214,7 +214,7 @@ async def quick_summary(req: QuickSummaryRequest):
     Useful for generating short descriptions or previews.
     """
     try:
-        summary = claude.quick_summary(
+        summary = gemini_service.quick_summary(
             text=req.text,
             max_length=req.max_length,
         )
@@ -241,7 +241,7 @@ async def classify_outcome(req: ClassifyOutcomeRequest):
     - unknown
     """
     try:
-        outcome = claude.classify_call_outcome(req.transcript)
+        outcome = gemini_service.classify_call_outcome(req.transcript)
         return {"success": True, "outcome": outcome}
     except Exception as e:
         logger.error(f"Failed to classify outcome: {e}")
@@ -258,7 +258,7 @@ async def batch_summarize(transcripts: list[SummarizeRequest]):
     results = []
     for req in transcripts:
         try:
-            summary = claude.summarize_transcript(
+            summary = gemini_service.summarize_transcript(
                 transcript=req.transcript,
                 context=req.context,
             )
@@ -274,7 +274,7 @@ async def batch_score_leads(leads: list[LeadScoreRequest]):
     results = []
     for req in leads:
         try:
-            score = claude.score_lead(
+            score = gemini_service.score_lead(
                 lead_data=req.lead_data,
                 call_history=req.call_history,
             )
@@ -293,15 +293,15 @@ async def ai_health():
     """Check if AI service is available."""
     try:
         # Try a simple operation
-        result = claude.analyze_sentiment("test")
+        result = gemini_service.analyze_sentiment("test")
         return {
             "status": "healthy",
-            "service": "anthropic-claude",
+            "service": "google-gemini",
             "mock_mode": result.get("confidence", 0) == 0.85,  # Mock returns 0.85
         }
     except Exception as e:
         return {
             "status": "degraded",
-            "service": "anthropic-claude",
+            "service": "google-gemini",
             "error": str(e),
         }

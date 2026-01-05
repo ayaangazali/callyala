@@ -33,8 +33,8 @@ class Settings(BaseSettings):
     elevenlabs_agent_id: str = ""
     elevenlabs_phone_number_id: str = ""
 
-    # Anthropic Claude
-    anthropic_api_key: str = ""
+    # Google Gemini AI
+    gemini_api_key: str = ""
 
     # Behavior
     mock_mode: bool = False

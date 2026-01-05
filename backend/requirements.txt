@@ -16,8 +16,8 @@ gspread>=5.12.0
 # ElevenLabs Voice AI
 # (Uses httpx for API calls - no additional package needed)
 
-# Anthropic Claude AI
-anthropic>=0.40.0
+# Google Gemini AI
+# (Uses httpx for direct API calls - no additional package needed)
 
 # Utilities
 portalocker>=2.8.0
